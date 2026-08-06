@@ -1,0 +1,20 @@
+=========================================
+                  HIL                    
+=========================================
+Sync step (PC and MCU)  : 341 s
+Coordinates (X, Y, Z)   : 6236436.8, 1794903.9, 1796568.7 m
+Velocity (Vx, Vy, Vz)   : -2935.89, 5003.16, 5049.76 m/s
+Orbit Radius            : 6733682.8 m
+Altitude                : 357104.4 m (WGS84)
+ Inclination            : 45.23 deg (Target: 90.0)
+ Periapsis (Pe)         : 178.1 km
+ Apoapsis  (Ap)         : 524.3 km
+Target quaternion (LVLH): [0.6532, 0.2721, -0.6523, -0.2717]
+Quaternion              : [0.6527, 0.2788, -0.6497, -0.2723]
+Angular Velocity        : [-0.000, 0.000, -0.000] rad/s
+Alignment Factor        : 255 / 255
+-----------------------------------------
+ADCS Status             : [ A C T I V E ]
+Engine Status           : [ O N ]
+=========================================
+GNC ACTIVE PHASE        : [ PHASE 2: POLAR INCLINATION CHANGE (CROSS-TRACK BURN) ]
