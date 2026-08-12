@@ -170,13 +170,28 @@ The GNC flight controller operates inside a **20 Hz sub-stepping physics integra
 ### 1. Attitude Parameter Extraction (Row-Based Sheppard's Algorithm)
 The guidance logic derives the Local Vertical Local Horizontal (LVLH) frame by tracking the geocentric position and velocity vectors: $\mathbf{k}\_{\text{lvlh}} = \frac{-\mathbf{r}}{\lvert\mathbf{r}\rvert}$ (Nadir), $\mathbf{j}\_{\text{lvlh}} = \frac{(\mathbf{k} \times \mathbf{v})}{\lvert\mathbf{k} \times \mathbf{v}\rvert}$ (Binormal), and $\mathbf{i}_{\text{lvlh}} = \mathbf{j} \times \mathbf{k}$ (Velocity transversal). 
 
-To map the target orientation rows $\mathbf{R}\_{\text{mat}} \in \mathbb{R}^{3 \times 3}$ directly to a target quaternion $\mathbf{q}_{ \text{target} }$ without trigonometric singularities, a matrix-to-quaternion **Sheppard's Algorithm** is implemented using rows as the primary coordinate basis:
+To extract the target flight command quaternion $\mathbf{q}_{\text{target}}$ from the dynamic orthonormal matrix $\mathbf{R}\_{\text{mat}}$ without experiencing the trigonometric singularities or divisions-by-zero inherent to Euler angle conversions, the OBC executes a robust, four-branch **Row-Based Sheppard’s Algorithm**. 
 
-$$\text{Tr}(\mathbf{R}_{mat}) = R_{11} + R_{22} + R_{33}$$
+The flight software dynamically evaluates the trace of the guidance matrix ( $\text{Tr}(\mathbf{R}\_{\text{mat}})$ ) and the magnitudes of its diagonal elements to choose the mathematically dominant quaternion component, maximizing floating-point precision across the entire $360^\circ$ spatial envelope:
 
-If $\text{Tr}(\mathbf{R}\_{\text{mat}}) \gt 0$, the scalar-dominant core is selected to guarantee maximum floating-point precision:
-$S = 2\sqrt{\text{Tr}(\mathbf{R}\_{\text{mat}}) + 1.0}, \quad q\_{\text{target}\_0} = 0.25S$
-$$q_{\text{target}\_1} = \frac{R_{32} - R_{23}}{S}, \quad q_{\text{target}\_2} = \frac{R_{13} - R_{31}}{S}, \quad q_{\text{target}\_3} = \frac{R_{21} - R_{12}}{S}$$
+$$\begin{aligned} \text{Tr}(\mathbf{R}\_{\text{mat}}) &= R_{11} + R_{22} + R_{33} \end{aligned}$$
+
+$$\mathbf{q}_{\text{target}} = \left[ \begin{aligned} 
+&\text{\bf{Branch 1: If }} \text{Tr}(\mathbf{R}_{\text{mat}}) \gt 0 \text{ (Scalar Dominant)} \\\\
+&\quad S = 2.0 \cdot \sqrt{\text{Tr}(\mathbf{R}_{\text{mat}}) + 1.0} \\\\
+&\quad \mathbf{q}_{\text{target}} = \begin{bmatrix} 0.25 \cdot S & \frac{R_{23} - R_{32}}{S} & \frac{R_{31} - R_{13}}{S} & \frac{R_{12} - R_{21}}{S} \end{bmatrix}^\top \\\\
+&\text{\bf{Branch 2: If }} R_{11} \gt R_{22} \land R_{11} \gt R_{33} \text{ (X-Axis Dominant)} \\\\
+&\quad S = 2.0 \cdot \sqrt{1.0 + R_{11} - R_{22} - R_{33}} \\\\
+&\quad \mathbf{q}_{\text{target}} = \begin{bmatrix} \frac{R_{23} - R_{32}}{S} & 0.25 \cdot S & \frac{R_{12} + R_{21}}{S} & \frac{R_{13} + R_{31}}{S} \end{bmatrix}^\top \\\\
+&\text{\bf{Branch 3: If }} R_{22} \gt R_{33} \text{ (Y-Axis Dominant)} \\\\
+&\quad S = 2.0 \cdot \sqrt{1.0 + R_{22} - R_{11} - R_{33}} \\\\
+&\quad \mathbf{q}_{\text{target}} = \begin{bmatrix} \frac{R_{31} - R_{13}}{S} & \frac{R_{12} + R_{21}}{S} & 0.25 \cdot S & \frac{R_{23} + R_{32}}{S} \end{bmatrix}^\top \\\\
+&\text{\bf{Branch 4: Otherwise (Z-Axis Dominant)}} \\\\
+&\quad S = 2.0 \cdot \sqrt{1.0 + R_{33} - R_{11} - R_{22}} \\\\
+&\quad \mathbf{q}_{\text{target}} = \begin{bmatrix} \frac{R_{12} - R_{21}}{S} & \frac{R_{13} + R_{31}}{S} & \frac{R_{23} + R_{32}}{S} & 0.25 \cdot S \end{bmatrix}^\top
+\end{aligned} \right]$$
+
+This branch-switching logic shifts the divisor $S$ away from zero zones into the maximum absolute value manifold, guaranteeing complete numerical stability during aggressive out-of-plane maneuvers.
 
 ### 2. Conjugate Quaternion Error Manifold Extraction
 To enforce strict coordinate alignment across arbitrary large-angle turns without experiencing trigonometric blind spots (such as roll-axis unwinding), the guidance logic discards spatial vector projections. Instead, the flight computer continuously maps attitude deviations onto the local $S^3$ hypersphere manifold by evaluating a full 4D **Conjugate Quaternion Multiplicative Error ($\mathbf{e}_{quat}$)**:
