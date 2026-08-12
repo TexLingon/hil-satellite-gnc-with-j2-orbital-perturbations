@@ -246,12 +246,20 @@ while true
             q_target1 = 0.25 * S;
             q_target2 = (R_mat(1,2) + R_mat(2,1)) / S;
             q_target3 = (R_mat(1,3) + R_mat(3,1)) / S;
-        else
+            
+        elseif R_mat(2,2) > R_mat(3,3)
             S = sqrt(1.0 + R_mat(2,2) - R_mat(1,1) - R_mat(3,3)) * 2;
             q_target0 = (R_mat(3,1) - R_mat(1,3)) / S;
             q_target1 = (R_mat(1,2) + R_mat(2,1)) / S;
             q_target2 = 0.25 * S;
             q_target3 = (R_mat(2,3) + R_mat(3,2)) / S;
+            
+        else
+            S = sqrt(1.0 + R_mat(3,3) - R_mat(1,1) - R_mat(2,2)) * 2;
+            q_target0 = (R_mat(1,2) - R_mat(2,1)) / S;
+            q_target1 = (R_mat(1,3) + R_mat(3,1)) / S;
+            q_target2 = (R_mat(2,3) + R_mat(3,2)) / S;
+            q_target3 = 0.25 * S;
         end
     end
 
