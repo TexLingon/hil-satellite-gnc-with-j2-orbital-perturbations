@@ -270,7 +270,7 @@ while true
         q_target = q_target / q_t_norm;
     end
 
-    sub_steps = 20;
+    sub_steps = 100;
     dt_sub = dt / sub_steps;
 
     for s = 1:sub_steps
@@ -294,9 +294,9 @@ while true
         if dot_spatial > 1.0, dot_spatial = 1.0; end
         align_byte = uint8(dot_spatial * 255);
 
-        Kp = -1.15;
-        Kd = -1.65;
-        Ki = -0.01;
+        Kp = -0.0085;
+        Kd = -0.0145;
+        Ki = -0.0001;
 
         r_mag_sq = x^2 + y^2 + z^2;
         omega_orbit_eci = cross([x, y, z], [vx, vy, vz]) / r_mag_sq;

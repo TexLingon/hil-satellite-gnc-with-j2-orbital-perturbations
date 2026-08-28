@@ -40,7 +40,7 @@ function dS = rk4_derivatives(S, engine_state, M_ctrl)
     
     S_mid = 0.1 * 0.1;
     Cd = 2.2;
-    m = 1.33;
+    m = 3.5;
 
     v_mag_L = sqrt(vx_L^2 + vy_L^2 + vz_L^2);
     a_drag_mag = (0.5 * rho * v_mag_L^2 * Cd * S_mid / m);
@@ -84,7 +84,7 @@ function dS = rk4_derivatives(S, engine_state, M_ctrl)
     dvy = -(mu * y_L) / (radius_L^3) + ay_drag + ay_J2 + ay_thrust;
     dvz = -(mu * z_L) / (radius_L^3) + az_drag + az_J2 + az_thrust;
 
-    Jx = 2.0; Jy = 2.5; Jz = 3.0;
+    Jx = 0.00067; Jy = 0.042; Jz = 0.042;
 
     dwx = ((Jy - Jz) * omega_L(2) * omega_L(3) + M_ctrl(1)) / Jx;
     dwy = ((Jz - Jx) * omega_L(3) * omega_L(1) + M_ctrl(2)) / Jy;
